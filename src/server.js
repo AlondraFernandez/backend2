@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import passport from './config/passport.js';
 import sessionsRouter from './routes/sessions.js';
+import productRouter from './routes/products.js';
+import cartRouter from './routes/carts.js';
 
 dotenv.config();
 
@@ -15,6 +17,8 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/products', productRouter);
+app.use('/api/carts', cartRouter);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

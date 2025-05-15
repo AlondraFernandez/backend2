@@ -35,9 +35,9 @@ router.post('/login', async (req, res) => {
     .json({ message: 'Login exitoso' });
 });
 
-// Ruta current
-router.get('/current', passport.authenticate('jwt', { session: false }), (req, res) => {
-  res.json({ user: req.user });
+router.get('/current', (req, res) => {
+  const userDTO = new UserDTO(req.user);
+  res.json(userDTO);
 });
 
 export default router;
