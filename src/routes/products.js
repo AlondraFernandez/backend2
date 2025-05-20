@@ -1,6 +1,5 @@
 import express from 'express';
 import { authorizeRoles } from '../middlewares/authorization.js';
-import productRepository from '../repositories/ProductRepository.js';
 import passport from 'passport';
 
 const router = express.Router();

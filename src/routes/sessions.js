@@ -1,8 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import User from '../models/User.js';
+import User from '../models/user.model.js';
 import { generateToken } from '../utils/jwt.js';
 import passport from 'passport';
+import UserDTO from '../dtos/user.dto.js'; // ✅ IMPORTADO
 
 const router = express.Router();
 
@@ -13,8 +14,10 @@ router.post('/register', async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'Email ya registrado' });
 
-    const newUser = new User(req.body);
+    const hashedPassword = bcrypt.hashSync(req.body.password, 10); // 🔐 Hash seguro
+    const newUser = new User({ ...req.body, password: hashedPassword });
     await newUser.save();
+
     res.status(201).json({ message: 'Usuario registrado' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -35,9 +38,13 @@ router.post('/login', async (req, res) => {
     .json({ message: 'Login exitoso' });
 });
 
-router.get('/current', (req, res) => {
-  const userDTO = new UserDTO(req.user);
-  res.json(userDTO);
-});
+router.get(
+  '/current',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const userDTO = new UserDTO(req.user);
+    res.json(userDTO);
+  }
+);
 
 export default router;

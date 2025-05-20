@@ -1,20 +1,25 @@
-import ProductRepository from '../repositories/product.repository.js';
-const productRepo = new ProductRepository();
+import ProductDao from '../dao/product.dao.js';
 
-export default class ProductService {
-  async create(data) {
-    return await productRepo.create(data);
+class ProductService {
+  async getAll() {
+    return await ProductDao.getAll();
   }
 
-  async update(pid, data) {
-    return await productRepo.update(pid, data);
+  async getById(id) {
+    return await ProductDao.getById(id);
   }
 
-  async delete(pid) {
-    return await productRepo.delete(pid);
+  async create(product) {
+    return await ProductDao.create(product);
   }
 
-  async findAll() {
-    return await productRepo.findAll();
+  async update(id, data) {
+    return await ProductDao.update(id, data);
+  }
+
+  async delete(id) {
+    return await ProductDao.delete(id);
   }
 }
+
+export default new ProductService();

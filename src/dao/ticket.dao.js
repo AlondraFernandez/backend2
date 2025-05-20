@@ -1,7 +1,15 @@
-import TicketModel from '../models/ticket.model.js';
+import TicketModel from '../models/Ticket.js';
 
 export default class TicketDAO {
-  async create(data) {
-    return await TicketModel.create(data);
+  async createTicket(ticketData) {
+    return await TicketModel.create(ticketData);
+  }
+
+  async getTicketByCode(code) {
+    return await TicketModel.findOne({ code });
+  }
+
+  async getAllTickets() {
+    return await TicketModel.find();
   }
 }
