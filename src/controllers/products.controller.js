@@ -1,19 +1,30 @@
-import ProductService from '../services/product.service.js';
+import { ProductService } from '../services/products.service.js';
+const productService = new ProductService();
 
-export const getAllProducts = async (req, res) => {
-  try {
-    const products = await ProductService.getAll();
+export const getProducts = async (req, res) => {
+    const products = await productService.getAll();
     res.json(products);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener productos' });
-  }
+};
+
+export const getProductById = async (req, res) => {
+    const product = await productService.getById(req.params.pid);
+    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+    res.json(product);
 };
 
 export const createProduct = async (req, res) => {
-  try {
-    const product = await ProductService.create(req.body);
+    const product = await productService.create(req.body);
     res.status(201).json(product);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al crear producto' });
-  }
+};
+
+export const updateProduct = async (req, res) => {
+    const product = await productService.update(req.params.pid, req.body);
+    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+    res.json(product);
+};
+
+export const deleteProduct = async (req, res) => {
+    const product = await productService.delete(req.params.pid);
+    if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+    res.json({ message: 'Producto eliminado' });
 };

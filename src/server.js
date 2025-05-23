@@ -1,32 +1,45 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
-import passport from './config/passport.js';
+import passport from 'passport'
+import initializePassport from './config/passport.config.js';
 import { connectDB } from './config/db.js';
+import './config/passport.js'
+import userRoutes from './routes/users.routes.js'
+import productRoutes from './routes/products.routes.js'
+import cartRoutes from './routes/carts.routes.js'
+import sessionRoutes from './routes/sessions.routes.js'
+import mocksRoutes from './routes/mocks.router.js'
 
-import sessionsRouter from './routes/sessions.js';
-import productRouter from './routes/products.js';
-import cartRouter from './routes/carts.js';
-
-dotenv.config(); // Muy importante que esté antes de usar process.env
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middlewares
+// Middleware base
 app.use(express.json());
-app.use(cookieParser());
-app.use(passport.initialize()); // Aquí se inicializa passport
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize())
+app.use('/api/users', userRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/carts', cartRoutes)
+app.use('/api/sessions', sessionRoutes)
+app.use('/api/mocks', mocksRoutes)
 
-// Rutas
-app.use('/api/sessions', sessionsRouter);
-app.use('/api/products', productRouter);
-app.use('/api/carts', cartRouter);
-
-// Conectar a la base de datos y levantar el servidor
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Servidor corriendo en el puerto ${PORT}`);
-  });
+initializePassport(); // Esto debe ejecutarse
+app.use(passport.initialize());
+app.use(passport.session()); // Solo si usás sesiones
+// Prueba inicial
+app.get('/ping', (req, res) => {
+    res.send('🏓 Pong desde Conecta Bien API');
 });
 
+// Conexion  Mongo y aranque del servidor
+const PORT = process.env.PORT || 8080;
+
+const startServer = async () => {
+    await connectDB();
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    });
+};
+
+startServer();

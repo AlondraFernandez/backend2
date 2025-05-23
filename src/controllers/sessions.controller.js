@@ -1,23 +1,12 @@
-import UserService from '../services/user.service.js';
-import { generateToken } from '../utils/jwt.js';
-import UserDTO from '../dtos/user.dto.js';
+import jwt from 'jsonwebtoken';
+const JWT_SECRET = process.env.JWT_SECRET || 'coderSecretKey';
 
-export const login = async (req, res) => {
-  const user = req.user;
-  const token = generateToken(user);
-  res.cookie('jwt', token, { httpOnly: true }).json({ message: 'Login exitoso' });
+export const loginSuccess = async (req, res) => {
+    const token = jwt.sign({ id: req.user._id }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ message: 'Login exitoso', token });
 };
 
-export const register = async (req, res) => {
-  res.status(201).json({ message: 'Registro exitoso' });
-};
-
-export const current = async (req, res) => {
-  if (!req.user) return res.status(401).json({ message: 'No autenticado' });
-  const userDTO = new UserDTO(req.user);
-  res.json(userDTO);
-};
-
-export const logout = (req, res) => {
-  res.clearCookie('jwt').json({ message: 'Sesión finalizada' });
+export const currentUser = (req, res) => {
+    const { _id, email, first_name, last_name, role } = req.user;
+    res.json({ id: _id, email, fullName: `${first_name} ${last_name}`, role });
 };

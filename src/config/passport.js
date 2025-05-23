@@ -1,77 +1,74 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { Strategy as JWTStrategy, ExtractJwt } from 'passport-jwt';
-import dotenv from 'dotenv';
-import UserModel from '../models/user.model.js';
-import { isValidPassword } from '../utils/crypt.js'; 
-import { cookieExtractor } from '../utils/cookieExtractor.js';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { UserModel } from '../models/user.model.js';
+import { CartModel } from '../models/cart.model.js';
 
-// Carga las variables de entorno desde .env
-dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'coderSecretKey';
 
-// Validación: asegurarse de que JWT_SECRET esté definido
-if (!JWT_SECRET) {
-  throw new Error('❌ JWT_SECRET no está definido en el archivo .env');
-}
-
-// Estrategia de registro
 passport.use(
-  'register',
-  new LocalStrategy(
-    { usernameField: 'email', passReqToCallback: true },
-    async (req, email, password, done) => {
-      try {
-        const userExists = await UserModel.findOne({ email });
-        if (userExists) return done(null, false);
+    'register',
+    new LocalStrategy(
+        { usernameField: 'email', passReqToCallback: true },
+        async (req, email, password, done) => {
+            try {
+                const exist = await UserModel.findOne({ email });
+                if (exist) return done(null, false, { message: 'Usuario ya existe' });
 
-        const newUser = new UserModel(req.body);
-        const savedUser = await newUser.save();
-        return done(null, savedUser);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
+                const newCart = await CartModel.create({ products: [] });
+
+                const { first_name, last_name, role } = req.body;
+
+                const user = await UserModel.create({
+                    first_name,
+                    last_name,
+                    email,
+                    password,
+                    role,
+                    cart: newCart._id
+                });
+
+                done(null, user);
+            } catch (err) {
+                done(err);
+            }
+        }
+    )
 );
 
-// Estrategia de login
 passport.use(
-  'login',
-  new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
-    try {
-      const user = await UserModel.findOne({ email });
-      if (!user) return done(null, false);
-
-      const isValid = isValidPassword(user, password);
-      if (!isValid) return done(null, false);
-
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  })
+    'login',
+    new LocalStrategy(
+        { usernameField: 'email', passReqToCallback: true },
+        async (req, email, password, done) => {
+            try {
+                const user = await UserModel.findOne({ email });
+                if (!user || user.password !== password) {
+                    return done(null, false, { message: 'Credenciales inválidas' });
+                }
+                return done(null, user);
+            } catch (err) {
+                done(err);
+            }
+        }
+    )
 );
 
-// Estrategia JWT
 passport.use(
-  'current',
-  new JWTStrategy(
-    {
-      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
-      secretOrKey: JWT_SECRET,
-    },
-    async (jwtPayload, done) => {
-      try {
-        const user = await UserModel.findById(jwtPayload.id);
-        if (!user) return done(null, false);
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
+    'jwt',
+    new JwtStrategy(
+        {
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: JWT_SECRET,
+        },
+        async (payload, done) => {
+            try {
+                const user = await UserModel.findById(payload.id);
+                done(null, user);
+            } catch (err) {
+                done(err);
+            }
+        }
+    )
 );
-
-export default passport;

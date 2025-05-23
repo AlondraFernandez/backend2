@@ -1,8 +1,8 @@
-export const authorizeRole = (role) => {
-  return (req, res, next) => {
-    if (req.user.role !== role) {
-      return res.status(403).json({ message: 'Acceso denegado' });
-    }
-    next();
-  };
+export const authRole = (roleRequired) => {
+    return (req, res, next) => {
+        if (!req.user || req.user.role !== roleRequired) {
+            return res.status(403).json({ error: 'Acceso denegado: permiso insuficiente' });
+        }
+        next();
+    };
 };
