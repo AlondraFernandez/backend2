@@ -3,6 +3,11 @@ import { generateUsersMock, insertMockData } from '../utils/mockGenerator.js'
 
 const router = Router()
 
+// Ruta raíz del router /api/mocks
+router.get('/', (req, res) => {
+  res.json({ message: 'Ruta /api/mocks activa' });
+})
+
 router.get('/mockingusers', (req, res) => {
     const users = generateUsersMock(50)
     res.json(users)
